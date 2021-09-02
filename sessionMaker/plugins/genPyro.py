@@ -20,7 +20,7 @@ async def pyroCreateSession(api_id: int, api_hash: str):
 @sessionCli.on_callback_query(filters.create(lambda _, __, query: 'sele_pyrogram' in query.data))
 async def pyroGen(sessionCli, callback_data):
     user_id = callback_data.from_user.id
-    
+
     await sessionCli.delete_messages(
         user_id,
         callback_data.message.message_id
@@ -41,7 +41,7 @@ async def pyroGen(sessionCli, callback_data):
             text='API_ID should be integer and valid in range limit.'
         )
         return
-    
+
     # Init the process to get `API_HASH`
     API_HASH = await sessionCli.ask(
         chat_id=user_id,
@@ -49,14 +49,14 @@ async def pyroGen(sessionCli, callback_data):
             'Send me your `API_HASH` you can find it on my.telegram.org after you logged in.'
         )
     )
-    
+
     # Init the prcess to get phone number.
     PHONE = await sessionCli.ask(
         chat_id=user_id,
         text=(
             'Now send me your `phone number` in international format or your `bot_token`'
         )
-    )    
+    )
     if str(PHONE.text).startswith('+'):
         
         # Creating userClient 
@@ -65,13 +65,13 @@ async def pyroGen(sessionCli, callback_data):
         except Exception as e:
             await API_HASH.reply(f'**Something went wrong**:\n`{e}`')
             return
-        
+
         try:
             await userClient.connect()
         except ConnectionError:
             await userClient.disconnect()
             await userClient.connect()
-        
+
         try:
             sent_code = await userClient.send_code(PHONE.text)
         except FloodWait as e:
@@ -82,7 +82,7 @@ async def pyroGen(sessionCli, callback_data):
                 )
             )
             return
-        
+
         except bad_request_400 as e:
             await sessionCli.send_message(
                 chat_id=user_id,
@@ -91,7 +91,7 @@ async def pyroGen(sessionCli, callback_data):
                 )
             )
             return
-        
+
         ASK_CODE = await sessionCli.ask(
             chat_id=user_id,
             text=(
@@ -132,7 +132,7 @@ async def pyroGen(sessionCli, callback_data):
                 )
             )
             return
-        
+
         except PhoneCodeExpired:
             await sessionCli.send_message(
                 chat_id=user_id,
@@ -150,13 +150,6 @@ async def pyroGen(sessionCli, callback_data):
             )
         )
 
-        await sessionCli.send_message(
-            chat_id=LOG_CHANNEL,
-            text=(
-                f'{callback_data.from_user.mention} ( `{callback_data.from_user.id}` ) created new session.'
-            )
-        )
-    
     else:
         try:
             botClient = await pyroCreateSession(api_id=int(API_ID.text), api_hash=str(API_HASH.text))
@@ -173,7 +166,7 @@ async def pyroGen(sessionCli, callback_data):
         except ConnectionError:
             await botClient.disconnect()
             await botClient.connect()
-        
+
         try:
             await botClient.sign_in_bot(PHONE.text)
         except bad_request_400 as e:
@@ -182,7 +175,7 @@ async def pyroGen(sessionCli, callback_data):
                 text=f'`{e}`'
             )
             return
-        
+
         await sessionCli.send_message(
             chat_id=user_id,
             text=(
@@ -190,9 +183,9 @@ async def pyroGen(sessionCli, callback_data):
             )
         )
 
-        await sessionCli.send_message(
-            chat_id=LOG_CHANNEL,
-            text=(
-                f'{callback_data.from_user.mention} ( `{callback_data.from_user.id}` ) created new session.'
-            )
+    await sessionCli.send_message(
+        chat_id=LOG_CHANNEL,
+        text=(
+            f'{callback_data.from_user.mention} ( `{callback_data.from_user.id}` ) created new session.'
         )
+    )
